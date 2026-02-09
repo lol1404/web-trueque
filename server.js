@@ -9,7 +9,19 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'tu_super_secreto_jwt'; // ¡Cambia esto en producción!
 
 // Middleware
-app.use(cors());
+// Allow configuring allowed origins via env var (comma-separated). If not set, allow all origins.
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : null;
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!allowedOrigins) return callback(null, true);
+        // allow requests with no origin (mobile apps, curl, same-origin)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            return callback(null, true);
+        }
+        return callback(new Error('CORS policy: origin not allowed'));
+    }
+}));
 app.use(express.json());
 app.use(express.static('public'));
 

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: truekit-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        # Replace with your frontend origin (GitHub Pages URL), e.g. https://<username>.github.io
+        value: "https://<your-github-username>.github.io"
