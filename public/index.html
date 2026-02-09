@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUEKIT - App</title>
+    <meta name="description" content="Plataforma de trueques para una economía circular.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar container">
+            <a href="#" class="logo" id="logo-btn"><i class="fas fa-sync-alt"></i>TRUEKIT</a>
+            <ul class="nav-links">
+                <li class="auth-only"><a href="#" data-view="dashboard-view">Dashboard</a></li>
+                <li class="auth-only"><a href="#" data-view="products-view">Ver Productos</a></li>
+                <li class="auth-only"><a href="#" data-view="add-product-view">Añadir Producto</a></li>
+                <li class="auth-only"><a href="#" data-view="my-trades-view">Mis Trueques</a></li>
+                <li class="auth-only"><a href="#" data-view="campaigns-view">Campañas</a></li>
+                <li class="no-auth"><a href="#" data-view="login-view">Login</a></li>
+                <li class="no-auth"><a href="#" data-view="register-view">Registro</a></li>
+                <li class="auth-only"><a href="#" id="logout-btn">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container" id="main-content">
+        <!-- VISTA DE BIENVENIDA / LOGIN -->
+        <div id="login-view" class="view">
+            <h2>Bienvenido a TRUEKIT</h2>
+            <p>Inicia sesión para empezar a intercambiar.</p>
+            <form id="login-form" class="app-form">
+                <h3>Iniciar Sesión</h3>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Contraseña" required>
+                <button type="submit" class="btn">Login</button>
+                <p class="form-switch">¿No tienes cuenta? <a href="#" data-view="register-view">Regístrate</a></p>
+            </form>
+        </div>
+
+        <!-- VISTA DE REGISTRO -->
+        <div id="register-view" class="view" style="display: none;">
+            <h2>Únete a la Comunidad</h2>
+            <form id="register-form" class="app-form">
+                 <h3>Registro</h3>
+                <input type="text" id="register-name" placeholder="Nombre Completo" required>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="password" id="register-password" placeholder="Contraseña" required>
+                <input type="text" id="register-location" placeholder="Ubicación (Ej: Montequinto)" required>
+                <button type="submit" class="btn">Registrarse</button>
+                 <p class="form-switch">¿Ya tienes cuenta? <a href="#" data-view="login-view">Inicia Sesión</a></p>
+            </form>
+        </div>
+
+        <!-- VISTA DEL DASHBOARD -->
+        <div id="dashboard-view" class="view" style="display: none;">
+            <h2 id="dashboard-welcome"></h2>
+            <div class="dashboard-stats">
+                 <div class="stat-card">
+                    <i class="fas fa-coins"></i>
+                    <h4>Truecréditos</h4>
+                    <p id="dashboard-tokens"></p>
+                </div>
+                 <div class="stat-card">
+                    <i class="fas fa-star"></i>
+                    <h4>Nivel</h4>
+                    <p id="dashboard-level"></p>
+                </div>
+                 <div class="stat-card">
+                    <i class="fas fa-handshake"></i>
+                    <h4>Trueques</h4>
+                    <p id="dashboard-trades"></p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h4>Ubicación</h4>
+                    <p id="dashboard-location"></p>
+                </div>
+            </div>
+            <h3><i class="fas fa-medal"></i> Mis Insignias</h3>
+            <div id="dashboard-insignias" class="insignias-container"></div>
+        </div>
+
+        <!-- VISTA DE PRODUCTOS -->
+        <div id="products-view" class="view" style="display: none;">
+            <h2>Productos Disponibles para Trueque</h2>
+            <div class="filters">
+                <select id="category-filter">
+                    <option value="">Todas las categorías</option>
+                    <option value="Servicios">Servicios</option>
+                    <option value="Instrumentos">Instrumentos</option>
+                    <option value="Deporte">Deporte</option>
+                    <option value="Alimentación">Alimentación</option>
+                    <option value="Hogar">Hogar</option>
+                    <option value="Tecnología">Tecnología</option>
+                </select>
+            </div>
+            <div id="products-grid" class="grid"></div>
+        </div>
+
+        <!-- VISTA PARA AÑADIR PRODUCTO -->
+        <div id="add-product-view" class="view" style="display: none;">
+            <h2>Añadir un Nuevo Producto o Servicio</h2>
+            <form id="add-product-form" class="app-form">
+                <input type="text" id="product-name" placeholder="Nombre del producto/servicio" required>
+                <textarea id="product-description" placeholder="Describe tu producto/servicio" required></textarea>
+                <input type="number" id="product-value" placeholder="Valor estimado en Truecréditos" required>
+                <input type="text" id="product-category" placeholder="Categoría (Ej: Hogar, Deporte)" required>
+                <input type="text" id="product-image" placeholder="URL de la imagen (opcional)">
+                <button type="submit" class="btn">Añadir Producto</button>
+            </form>
+        </div>
+        
+        <!-- VISTA DE MIS TRUEQUES -->
+        <div id="my-trades-view" class="view" style="display: none;">
+            <h2>Mis Trueques</h2>
+            <div id="trades-container" class="grid"></div>
+        </div>
+        
+        <!-- VISTA DE CAMPAÑAS -->
+        <div id="campaigns-view" class="view" style="display: none;">
+            <h2>Colabora en Nuestras Campañas</h2>
+            <div id="campaigns-container" class="grid"></div>
+            <div class="map-section">
+                <h3>Ubicaciones Clave</h3>
+                <div class="map-grid">
+                    <div>
+                        <h4>BIOAlverde - Montequinto</h4>
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25381.56450630591!2d-5.949699665686036!3d37.3278566428786!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd126ef868199b7b%3A0x602635320d913233!2sMontequinto%2C%20Sevilla!5e0!3m2!1ses!2ses!4v1675952134584!5m2!1ses!2ses" class="map-embed" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                    <div>
+                        <h4>Dehesa Doña María - Dos Hermanas</h4>
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3175.760195724564!2d-5.96166388469722!3d37.25368397985775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd126bf583344d59%3A0xe968845012351b6a!2sParque%20Forestal%20Dehesa%20Do%C3%B1a%20Mar%C3%ADa!5e0!3m2!1ses!2ses!4v1675952213739!5m2!1ses!2ses" class="map-embed" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- MODAL PARA TRUEQUES -->
+    <div id="trade-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Iniciar Trueque</h3>
+            <div id="trade-modal-content"></div>
+        </div>
+    </div>
+    
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmation-title">Confirmar Acción</h3>
+            <p id="confirmation-message"></p>
+            <div class="modal-actions">
+                <button id="confirmation-cancel-btn" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmation-confirm-btn" class="btn btn-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NOTIFICACIONES -->
+    <div id="notification" class="notification"></div>
+
+    <footer class="footer">
+        <p>&copy; 2026 TRUEKIT. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
