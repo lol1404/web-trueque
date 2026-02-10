@@ -620,6 +620,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- INITIALIZATION ---
+    // Exponer helpers para depuración en la consola
+    window.showView = showView;
+    window.openChat = openChat;
     const initApp = async () => {
         if (state.token) {
             await fetchUserData();
