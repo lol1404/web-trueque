@@ -229,12 +229,20 @@ document.addEventListener('DOMContentLoaded', () => {
             list.innerHTML = '<p>No tienes conversaciones todavía.</p>';
             return;
         }
+        // Guardar chats en estado para referencia
+        state.chats = chats;
         chats.forEach(chat => {
             const otherName = (chat.user1_id === state.user.id) ? chat.user2_name : chat.user1_name;
+            const lastMsg = chat.last_message ? chat.last_message : '';
+            const lastTime = chat.last_message_time ? new Date(chat.last_message_time).toLocaleString() : '';
             const item = document.createElement('div');
             item.className = 'chat-item';
             item.dataset.chatId = chat.id;
-            item.innerHTML = `<h4>${otherName}</h4><p class="last-msg">${chat.last_message || ''}</p>`;
+            item.innerHTML = `
+                <h4>${otherName}</h4>
+                <p class="last-msg">${lastMsg}</p>
+                <div class="chat-time">${lastTime}</div>
+            `;
             list.appendChild(item);
         });
     };
@@ -278,6 +286,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar vista de chats y cargar mensajes
         showView('chats-view');
         await fetchAndRenderChats();
+        // marcar activo en la lista
+        document.querySelectorAll('.chat-item').forEach(it => it.classList.remove('active'));
+        const activeEl = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
+        if (activeEl) activeEl.classList.add('active');
+
+        // Obtener nombre del otro usuario desde state.chats
+        const chatObj = (state.chats || []).find(c => String(c.id) === String(chatId));
+        if (chatObj) {
+            const otherName = (chatObj.user1_id === state.user.id) ? chatObj.user2_name : chatObj.user1_name;
+            const header = document.getElementById('chat-header');
+            header.innerHTML = `<strong>${otherName}</strong> <span class="chat-sub">(Trueque ${chatObj.trade_id || ''})</span>`;
+        }
+
         await fetchAndRenderMessages(chatId);
         // guardar chat activo en DOM
         const chatForm = document.getElementById('chat-form');

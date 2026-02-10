@@ -329,6 +329,8 @@ h2, h3 { font-family: var(--font-primary); color: var(--primary-color); margin-b
     cursor: pointer;
 }
 .chat-item h4 { margin-bottom: 6px; }
+.chat-item .chat-time { font-size: 0.75rem; color: #999; margin-top: 6px; }
+.chat-item.active { background: #f0f7f2; }
 .messages .message { margin-bottom: 12px; display: block; max-width: 75%; padding: 10px 14px; border-radius: 12px; }
 .messages .message.me { background: var(--primary-color); color: #fff; margin-left: auto; }
 .messages .message.they { background: #e9e9e9; color: #222; margin-right: auto; }
