@@ -10,15 +10,25 @@ const JWT_SECRET = 'tu_super_secreto_jwt'; // ¡Cambia esto en producción!
 
 // Middleware
 // Allow configuring allowed origins via env var (comma-separated). If not set, allow all origins.
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : null;
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : null;
 app.use(cors({
     origin: function(origin, callback) {
+        // If no ALLOWED_ORIGINS set, allow all (dev mode)
         if (!allowedOrigins) return callback(null, true);
+        
         // allow requests with no origin (mobile apps, curl, same-origin)
         if (!origin) return callback(null, true);
+        
+        // Check exact match
         if (allowedOrigins.indexOf(origin) !== -1) {
             return callback(null, true);
         }
+        
+        // Allow any github.io subdomain for flexibility
+        if (origin.includes('.github.io')) {
+            return callback(null, true);
+        }
+        
         return callback(new Error('CORS policy: origin not allowed'));
     }
 }));
