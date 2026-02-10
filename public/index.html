@@ -27,6 +27,7 @@
                 <li class="auth-only"><a href="#" data-view="add-product-view">Añadir Producto</a></li>
                 <li class="auth-only"><a href="#" data-view="my-trades-view">Mis Trueques</a></li>
                 <li class="auth-only"><a href="#" data-view="campaigns-view">Campañas</a></li>
+                <li class="auth-only"><a href="#" data-view="chats-view">Mensajes</a></li>
                 <li class="no-auth"><a href="#" data-view="login-view">Login</a></li>
                 <li class="no-auth"><a href="#" data-view="register-view">Registro</a></li>
                 <li class="auth-only"><a href="#" id="logout-btn">Logout</a></li>
@@ -125,6 +126,24 @@
         <div id="my-trades-view" class="view" style="display: none;">
             <h2>Mis Trueques</h2>
             <div id="trades-container" class="grid"></div>
+        </div>
+        
+        <!-- VISTA DE CHATS -->
+        <div id="chats-view" class="view" style="display: none;">
+            <h2>Mensajes</h2>
+            <div class="chat-layout">
+                <aside class="chat-list">
+                    <div id="chats-list"></div>
+                </aside>
+                <section class="chat-window">
+                    <div id="chat-header"></div>
+                    <div id="chat-messages" class="messages"></div>
+                    <form id="chat-form" class="chat-form">
+                        <input type="text" id="chat-input" placeholder="Escribe un mensaje..." autocomplete="off">
+                        <button type="submit" class="btn">Enviar</button>
+                    </form>
+                </section>
+            </div>
         </div>
         
         <!-- VISTA DE CAMPAÑAS -->

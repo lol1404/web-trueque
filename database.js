@@ -86,6 +86,33 @@ function initDb() {
         )`,(err) => {
              if (err) console.error("Error creando tabla campaign_donations:", err);
         });
+        
+        // Crear tabla de chats
+        db.run(`CREATE TABLE IF NOT EXISTS chats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            trade_id INTEGER,
+            user1_id INTEGER NOT NULL,
+            user2_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (trade_id) REFERENCES trades(id),
+            FOREIGN KEY (user1_id) REFERENCES users(id),
+            FOREIGN KEY (user2_id) REFERENCES users(id)
+        )`, (err) => {
+            if (err) console.error("Error creando tabla chats:", err);
+        });
+
+        // Crear tabla de mensajes
+        db.run(`CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id INTEGER NOT NULL,
+            sender_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (chat_id) REFERENCES chats(id),
+            FOREIGN KEY (sender_id) REFERENCES users(id)
+        )`, (err) => {
+            if (err) console.error("Error creando tabla messages:", err);
+        });
     });
 }
 

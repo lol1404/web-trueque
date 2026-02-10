@@ -251,7 +251,27 @@ app.put('/api/trades/:id', authenticateToken, (req, res) => {
                                 return res.status(500).json({ error: "Error al completar el trueque." });
                             }
                             db.run('COMMIT');
-                            res.json({ message: '¡Trueque aceptado! Intercambio completado.' });
+
+                            // Crear chat asociado al trueque si no existe y devolver chatId
+                            db.get('SELECT * FROM chats WHERE trade_id = ?', [tradeId], (err, existingChat) => {
+                                if (err) {
+                                    console.error('Error buscando chat existente:', err);
+                                    return res.json({ message: '¡Trueque aceptado! Intercambio completado.' });
+                                }
+                                if (existingChat) {
+                                    return res.json({ message: '¡Trueque aceptado! Intercambio completado.', chatId: existingChat.id });
+                                }
+
+                                const user1 = trade.user1_id;
+                                const user2 = trade.user2_id;
+                                db.run('INSERT INTO chats (trade_id, user1_id, user2_id) VALUES (?, ?, ?)', [tradeId, user1, user2], function(err) {
+                                    if (err) {
+                                        console.error('Error creando chat:', err);
+                                        return res.json({ message: '¡Trueque aceptado! Intercambio completado.' });
+                                    }
+                                    return res.json({ message: '¡Trueque aceptado! Intercambio completado.', chatId: this.lastID });
+                                });
+                            });
                         });
                     });
                 });
@@ -303,6 +323,62 @@ app.post('/api/donate', authenticateToken, (req, res) => {
             db.run('COMMIT', (err) => {
                  if (err) return res.status(500).json({ error: 'Error procesando la donación.' });
                  res.json({ message: '¡Gracias por tu donación!' });
+            });
+        });
+    });
+});
+
+// --- RUTAS DE CHAT/MENSAJES ---
+// Listar chats del usuario
+app.get('/api/chats', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    const sql = `SELECT c.*, u1.name as user1_name, u2.name as user2_name,
+                 (SELECT content FROM messages m WHERE m.chat_id = c.id ORDER BY m.timestamp DESC LIMIT 1) as last_message,
+                 (SELECT timestamp FROM messages m WHERE m.chat_id = c.id ORDER BY m.timestamp DESC LIMIT 1) as last_message_time
+                 FROM chats c
+                 LEFT JOIN users u1 ON c.user1_id = u1.id
+                 LEFT JOIN users u2 ON c.user2_id = u2.id
+                 WHERE c.user1_id = ? OR c.user2_id = ?
+                 ORDER BY last_message_time DESC, c.created_at DESC`;
+    db.all(sql, [userId, userId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
+// Obtener mensajes de un chat
+app.get('/api/chats/:id/messages', authenticateToken, (req, res) => {
+    const chatId = req.params.id;
+    const userId = req.user.id;
+    // Verificar que el usuario forma parte del chat
+    db.get('SELECT * FROM chats WHERE id = ? AND (user1_id = ? OR user2_id = ?)', [chatId, userId, userId], (err, chat) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!chat) return res.status(403).json({ error: 'No tienes acceso a este chat.' });
+
+        db.all('SELECT m.*, u.name as sender_name FROM messages m LEFT JOIN users u ON m.sender_id = u.id WHERE m.chat_id = ? ORDER BY m.timestamp ASC', [chatId], (err, rows) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json(rows || []);
+        });
+    });
+});
+
+// Enviar mensaje a un chat
+app.post('/api/chats/:id/messages', authenticateToken, (req, res) => {
+    const chatId = req.params.id;
+    const userId = req.user.id;
+    const { content } = req.body;
+    if (!content || content.trim() === '') return res.status(400).json({ error: 'El mensaje no puede estar vacío.' });
+
+    db.get('SELECT * FROM chats WHERE id = ? AND (user1_id = ? OR user2_id = ?)', [chatId, userId, userId], (err, chat) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!chat) return res.status(403).json({ error: 'No tienes acceso a este chat.' });
+
+        db.run('INSERT INTO messages (chat_id, sender_id, content) VALUES (?, ?, ?)', [chatId, userId, content], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            // Devolver el mensaje insertado
+            db.get('SELECT m.*, u.name as sender_name FROM messages m LEFT JOIN users u ON m.sender_id = u.id WHERE m.id = ?', [this.lastID], (err, row) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.status(201).json(row);
             });
         });
     });

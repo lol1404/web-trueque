@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Cargar datos específicos de cada vista
             if (viewId === 'my-trades-view') {
                 fetchAndRenderMyTrades();
+            } else if (viewId === 'chats-view') {
+                fetchAndRenderChats();
             }
         } else {
              document.getElementById('login-view').style.display = 'block';
@@ -219,6 +221,86 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    /* ----- Chats: render y fetch ----- */
+    const renderChatsList = (chats) => {
+        const list = document.getElementById('chats-list');
+        list.innerHTML = '';
+        if (!chats || chats.length === 0) {
+            list.innerHTML = '<p>No tienes conversaciones todavía.</p>';
+            return;
+        }
+        chats.forEach(chat => {
+            const otherName = (chat.user1_id === state.user.id) ? chat.user2_name : chat.user1_name;
+            const item = document.createElement('div');
+            item.className = 'chat-item';
+            item.dataset.chatId = chat.id;
+            item.innerHTML = `<h4>${otherName}</h4><p class="last-msg">${chat.last_message || ''}</p>`;
+            list.appendChild(item);
+        });
+    };
+
+    const fetchAndRenderChats = async () => {
+        try {
+            const chats = await apiFetch('/chats');
+            renderChatsList(chats);
+        } catch (err) {
+            console.error('Error fetching chats:', err);
+        }
+    };
+
+    const renderMessages = (messages, chat) => {
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = '';
+        if (!messages) return;
+        messages.forEach(m => {
+            const el = document.createElement('div');
+            const isMe = m.sender_id === state.user.id;
+            el.className = 'message ' + (isMe ? 'me' : 'they');
+            el.innerHTML = `<div class="text">${m.content}</div><div class="meta">${m.sender_name} · ${new Date(m.timestamp).toLocaleString()}</div>`;
+            container.appendChild(el);
+        });
+        container.scrollTop = container.scrollHeight;
+    };
+
+    const fetchAndRenderMessages = async (chatId) => {
+        try {
+            const messages = await apiFetch(`/chats/${chatId}/messages`);
+            // cargar header
+            const chatHeader = document.getElementById('chat-header');
+            chatHeader.textContent = 'Conversación';
+            renderMessages(messages);
+        } catch (err) {
+            console.error('Error fetching messages:', err);
+        }
+    };
+
+    const openChat = async (chatId) => {
+        // Mostrar vista de chats y cargar mensajes
+        showView('chats-view');
+        await fetchAndRenderChats();
+        await fetchAndRenderMessages(chatId);
+        // guardar chat activo en DOM
+        const chatForm = document.getElementById('chat-form');
+        chatForm.dataset.chatId = chatId;
+    };
+
+    const sendMessage = async (chatId, content) => {
+        try {
+            const message = await apiFetch(`/chats/${chatId}/messages`, { method: 'POST', body: { content } });
+            // Añadir al DOM
+            const container = document.getElementById('chat-messages');
+            const el = document.createElement('div');
+            el.className = 'message me';
+            el.innerHTML = `<div class="text">${message.content}</div><div class="meta">${message.sender_name} · ${new Date(message.timestamp).toLocaleString()}</div>`;
+            container.appendChild(el);
+            container.scrollTop = container.scrollHeight;
+            // refrescar lista de chats
+            fetchAndRenderChats();
+        } catch (err) {
+            console.error('Error sending message:', err);
+        }
+    };
+
     const fetchAndRenderMyTrades = async () => {
         try {
             const trades = await apiFetch('/my-trades');
@@ -236,6 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             showNotification(result.message);
             fetchAndRenderMyTrades();
+            // Si el backend devolvió chatId (trueque aceptado), abrir chat
+            if (result.chatId) {
+                openChat(result.chatId);
+            }
         } catch(error) {
             console.error('Error updating trade:', error);
         }
@@ -420,6 +506,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 buttonTexts[newStatus]
             );
         }
+        // Abrir chat al hacer click en la lista
+        const chatItem = e.target.closest && e.target.closest('.chat-item');
+        if (chatItem) {
+            const chatId = chatItem.dataset.chatId;
+            openChat(chatId);
+        }
     });
 
     document.getElementById('logo-btn').addEventListener('click', (e) => {
@@ -478,6 +570,20 @@ document.addEventListener('DOMContentLoaded', () => {
             tradeModal.style.display = "none";
         }
     };
+    
+    // Enviar mensaje desde el formulario de chat
+    const chatFormEl = document.getElementById('chat-form');
+    if (chatFormEl) {
+        chatFormEl.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const chatId = e.target.dataset.chatId;
+            const content = input.value.trim();
+            if (!content) return;
+            await sendMessage(chatId, content);
+            input.value = '';
+        });
+    }
     
     mainContent.addEventListener('submit', async (e) => {
         if (e.target.classList.contains('donation-form')) {
